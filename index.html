@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Naming Convention Tool</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+
+    input[type="text"],
+    select {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+      font-weight: normal;
+    }
+
+    button {
+      padding: 12px 24px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      display: block;
+      margin: 0 auto;
+      font-weight: bold;
+      border-width: 2px;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    h2 {
+      text-align: center;
+    }
+
+    #additionalFieldsContainer {
+      display: none;
+    }
+
+    #additionalFieldsForNo {
+      display: none;
+    }
+
+    #additionalOptions {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    #additionalOptions label {
+      margin-right: 20px;
+    }
+
+    .form-field {
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Naming Convention</h2>
+
+  <form id="inputForm">
+    <label for="clientCode">Client Code:</label>
+    <input type="text" id="clientCode" name="clientCode" oninput="updateSdNameAndDescription()" required>
+
+    <label for="modNo">Mod No:</label>
+    <input type="text" id="modNo" name="modNo" oninput="updateSdNameAndDescription()" required>
+
+    <label for="operation">Operation:</label>
+    <input type="text" id="operation" name="operation" oninput="updateSdNameAndDescription()" required>
+
+    <div id="additionalOptions">
+      <label for="createSDorCS">Do you want to create service definition :</label>
+      <label for="yes">Yes:</label>
+      <input type="radio" id="yes" name="additionalFields" value="yes" onclick="toggleAdditionalFields()" required>
+
+      <span>&emsp;</span>
+
+      <label for="no">No:</label>
+      <input type="radio" id="no" name="additionalFields" value="no" onclick="toggleAdditionalFields()" required>
+    </div>
+
+    <div id="additionalFieldsContainer">
+      <label for="createSdName">Sd Name:</label>
+      <input type="text" id="createSdName" name="createSdName" readonly>
+
+      <label for="Description">Description:</label>
+      <input type="text" id="Description" name="Description" readonly>
+
+      <label for="component">Component:</label>
+      <select id="component" name="component" onchange="fetchServiceDefinitions()" required>
+        <option value="">Select Component</option>
+      </select>
+
+      <label for="defaultApi">Enter API:</label>
+      <input type="text" id="defaultApi" name="defaultApi" required>
+    </div>
+
+    <div id="additionalFieldsForNo">
+      <label for="sdNameNo">SD Name:</label>
+      <input type="text" id="sdNameNo" name="sdNameNo" readonly required>
+
+      <label for="handlerName">Handler Name:</label>
+      <input type="text" id="handlerName" name="handlerName" readonly required>
+
+      <label for="componentId">Component ID:</label>
+      <select id="componentId" name="componentId" required>
+        <option value="">Select Component ID</option>
+      </select>
+    </div>
+
+    <button type="button" onclick="generatePayload()">Generate Payload</button>
+  </form>
+
+  <div id="output"></div>
+
+  <script>
+    let body = ["Receiving", "DC Inventory", "DC Order", "Putaway", "Pick Pack", "Cubing"];
+
+    function updateSdNameAndDescription() {
+      var clientCode = document.getElementById("clientCode").value.trim().toUpperCase();
+      var modNo = document.getElementById("modNo").value.trim().toUpperCase();
+      var description = document.getElementById("operation").value.trim();
+      description = description.replace(/\b\w/g, function (char) {
+        return char.toUpperCase();
+      });
+
+      var operation = description.replace(/\s+/g, '');
+
+      if (clientCode && modNo && operation && description) {
+        var createSdName = clientCode + modNo + operation;
+        document.getElementById("createSdName").value = createSdName;
+        document.getElementById("Description").value = description;
+      } else {
+        document.getElementById("createSdName").value = "Empty";
+        document.getElementById("Description").value = "Empty";
+      }
+    }
+
+    function generatePayload() {
+      var clientCode = document.getElementById("clientCode").value.trim();
+      var modNo = document.getElementById("modNo").value.trim();
+      var operation = document.getElementById("operation").value.trim();
+      var createSdName = document.getElementById("createSdName").value.trim();
+      var defaultApi = document.getElementById("defaultApi").value.trim();
+      var component = document.getElementById("component").value;
+
+      if (!clientCode || !modNo || !operation || !defaultApi || !component) {
+        alert("Missing some fields");
+        return;
+      }
+
+      var output = {};
+      if (document.getElementById("additionalFieldsContainer").style.display === "none") {
+        document.getElementById("output").innerHTML = "";
+        return;
+      }
+
+      output = {
+        "ServiceId": createSdName || "Not Applicable",
+        "ComponentId": component || "Not Applicable",
+        "ExtensionHandlerId": createSdName ? "MA" + createSdName : "Not Applicable",
+        "Url": defaultApi
+      };
+
+      document.getElementById("output").innerHTML = "<h3>Payload:</h3><pre>" + JSON.stringify(output, null, 2) + "</pre>";
+    }
+
+    function toggleAdditionalFields() {
+      var clientCode = document.getElementById("clientCode").value.trim();
+      var modNo = document.getElementById("modNo").value.trim();
+      var operation = document.getElementById("operation").value.trim();
+      var additionalFieldsContainer = document.getElementById("additionalFieldsContainer");
+      var additionalFieldsForNo = document.getElementById("additionalFieldsForNo");
+      var additionalFieldsRadioButtons = document.getElementsByName("additionalFields");
+      var outputDiv = document.getElementById("output");
+
+      if (!clientCode || !modNo || !operation) {
+        for (var i = 0; i < additionalFieldsRadioButtons.length; i++) {
+          additionalFieldsRadioButtons[i].checked = false;
+        }
+        if (confirm("Some fields are missing. The page will be reloaded.")) {
+          window.location.reload();
+        }
+        return;
+      }
+
+      var additionalFieldsValue = document.querySelector('input[name="additionalFields"]:checked').value;
+      if (additionalFieldsValue === "yes") {
+        additionalFieldsContainer.style.display = "block";
+        additionalFieldsForNo.style.display = "none";
+        outputDiv.innerHTML = "";
+        populateComponentDropdown(); // Populate component dropdown when "Yes" is selected
+      } else {
+        additionalFieldsContainer.style.display = "none";
+        additionalFieldsForNo.style.display = "block";
+        outputDiv.innerHTML = "";
+
+        var createSdName = document.getElementById("createSdName").value.trim();
+        var sdNameNo = "MA" +createSdName;
+        document.getElementById("sdNameNo").value = sdNameNo;
+        document.getElementById("handlerName").value = sdNameNo;
+
+        var componentIdSelect = document.getElementById("componentId");
+        componentIdSelect.innerHTML = "<option value=''>Select Component ID</option>"; // Reset options
+        body.forEach(function (component) {
+          var option = document.createElement("option");
+          option.text = component;
+          option.value = component.replace(/\s+/g, '').toLowerCase();
+          componentIdSelect.add(option);
+        });
+      }
+    }
+
+    function fetchServiceDefinitions() {
+      var component = document.getElementById("component").value;
+      var createSdNameInput = document.getElementById("createSdName");
+
+      if (!createSdNameInput.value) {
+        if (component) {
+          createSdNameInput.value = component;
+        } else {
+          createSdNameInput.value = "Empty";
+        }
+      }
+    }
+
+    function populateComponentDropdown() {
+      var componentSelect = document.getElementById("component");
+      componentSelect.innerHTML = "<option value=''>Select Component</option>";
+      body.forEach(function (component) {
+        var option = document.createElement("option");
+        option.text = component;
+        option.value = component.replace(/\s+/g, '').toLowerCase();
+        componentSelect.add(option);
+      });
+    }
+
+    window.onload = function () {
+      fetchServiceDefinitions();
+      updateSdNameAndDescription();
+    };
+  </script>
+
+</body>
+</html>
