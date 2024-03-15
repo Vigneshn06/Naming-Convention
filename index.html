@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,7 +17,8 @@
     }
 
     input[type="text"],
-    select {
+    select,
+    textarea {
       width: 100%;
       padding: 8px;
       margin-bottom: 10px;
@@ -47,7 +49,12 @@
       text-align: center;
     }
 
-    #additionalFieldsContainer {
+    #additionalFieldsContainerForYes {
+      display: none;
+    }
+
+    #additionalFieldsForUrl,
+    #additionalFieldsForReqUrl {
       display: none;
     }
 
@@ -55,14 +62,17 @@
       display: none;
     }
 
+    #additionalUrlOptions,
     #additionalOptions {
       display: flex;
       align-items: center;
       margin-bottom: 10px;
     }
 
+    #additionalUrlOptions label,
     #additionalOptions label {
       margin-right: 20px;
+      display: inline-block;
     }
 
     .form-field {
@@ -70,6 +80,7 @@
     }
   </style>
 </head>
+
 <body>
 
   <h2>Naming Convention</h2>
@@ -95,30 +106,48 @@
       <input type="radio" id="no" name="additionalFields" value="no" onclick="toggleAdditionalFields()" required>
     </div>
 
-    <div id="additionalFieldsContainer">
-      <label for="createSdName">Sd Name:</label>
+    <div id="additionalFieldsContainerForYes">
+      <label for="createSdName">Service Definition Name:</label>
       <input type="text" id="createSdName" name="createSdName" readonly>
 
       <label for="Description">Description:</label>
       <input type="text" id="Description" name="Description" readonly>
 
-      <label for="component">Component:</label>
+      <label for="component">Component Id:</label>
       <select id="component" name="component" onchange="fetchServiceDefinitions()" required>
         <option value="">Select Component</option>
       </select>
 
-      <label for="defaultApi">Enter API:</label>
-      <input type="text" id="defaultApi" name="defaultApi" required>
+      <div id="additionalUrlOptions">
+        <label for="Url">Is it URL :</label>
+        <label for="yesUrl">Yes:</label>
+        <input type="radio" id="yesUrl" name="additionalUrlFields" value="yes" onclick="toggleUrlandReqMapUrl()"
+          required>
+
+        <span>&emsp;</span>
+
+        <label for="noUrl">No:</label>
+        <input type="radio" id="noUrl" name="additionalUrlFields" value="no" onclick="toggleUrlandReqMapUrl()" required>
+      </div>
+
+      <div id="additionalFieldsForUrl">
+        <label for="Url">Enter URL:</label>
+        <input type="text" id="Url" name="defaultApi" required>
+      </div>
+      <div id="additionalFieldsForReqUrl">
+        <label for="ReqUrl">Enter Request Mapping URL:</label>
+        <input type="text" id="ReqUrl" name="ReqUrl" required>
+      </div>
     </div>
 
     <div id="additionalFieldsForNo">
-      <label for="sdNameNo">SD Name:</label>
-      <input type="text" id="sdNameNo" name="sdNameNo" readonly required>
+      <label for="sdName">Service Definition Name:</label>
+      <input type="text" id="sdName" name="sdName" readonly required>
 
       <label for="handlerName">Handler Name:</label>
       <input type="text" id="handlerName" name="handlerName" readonly required>
 
-      <label for="componentId">Component ID:</label>
+      <label for="componentId">Component Id:</label>
       <select id="componentId" name="componentId" required>
         <option value="">Select Component ID</option>
       </select>
@@ -130,94 +159,192 @@
   <div id="output"></div>
 
   <script>
-    let body = ["Receiving", "DC Inventory", "DC Order", "Putaway", "Pick Pack", "Cubing"];
-
-    function updateSdNameAndDescription() {
-      var clientCode = document.getElementById("clientCode").value.trim().toUpperCase();
-      var modNo = document.getElementById("modNo").value.trim().toUpperCase();
-      var description = document.getElementById("operation").value.trim();
-      description = description.replace(/\b\w/g, function (char) {
-        return char.toUpperCase();
-      });
-
-      var operation = description.replace(/\s+/g, '');
-
-      if (clientCode && modNo && operation && description) {
-        var createSdName = clientCode + modNo + operation;
-        document.getElementById("createSdName").value = createSdName;
-        document.getElementById("Description").value = description;
-      } else {
-        document.getElementById("createSdName").value = "Empty";
-        document.getElementById("Description").value = "Empty";
-      }
-    }
+    let body = ["agile",
+      "alertnotification",
+      "appointment",
+      "asset-manager",
+      "audit",
+      "aux-svcs",
+      "booking",
+      "broadcast-tender",
+      "carrier",
+      "claim",
+      "carrier-claim",
+      "commonui-facade",
+      "commonutil",
+      "configstore",
+      "configsync",
+      "controller",
+      "cubing",
+      "carrierportalui-facade",
+      "carrier-invoice",
+      "carrier-manager",
+      "carrier-performance-factor",
+      "carrier-shipment",
+      "carrier-tracking",
+      "cost-allocation",
+      "dcallocation",
+      "dcconsolidation",
+      "dcinventory",
+      "dclayout",
+      "dcorder",
+      "dcshipping",
+      "device-integration",
+      "detention",
+      "dispatch",
+      "distancetime",
+      "dmmobile-facade",
+      "dmui-facade",
+      "dmui-search",
+      "document-manager",
+      "dsp",
+      "email",
+      "elasticsearch",
+      "message-router",
+      "edge-router",
+      "facility",
+      "feasibility",
+      "fedex",
+      "frameworkuifacade",
+      "geo",
+      "inventory-management",
+      "invoice",
+      "item-master",
+      "lane-manager",
+      "lmcore",
+      "lmincentivepay",
+      "lminteraction",
+      "lpn-disposition",
+      "markmagic",
+      "messenger",
+      "monitor",
+      "nexus-ui",
+      "nexus",
+      "organization",
+      "parcel",
+      "payload-translation",
+      "pickpack",
+      "pix",
+      "print-config",
+      "proactive",
+      "putaway",
+      "receiving",
+      "rf-config",
+      "routing",
+      "rre",
+      "scheduler",
+      "shipconfirm",
+      "shipment",
+      "slotting",
+      "sorting",
+      "spe",
+      "srp",
+      "ssp",
+      "task",
+      "tender",
+      "tfe",
+      "tms-search",
+      "tmsui-facade",
+      "tracking",
+      "trp",
+      "ups",
+      "usps",
+      "vendor",
+      "wiretap",
+      "workrelease",
+      "xauth",
+      "xboundauth",
+      "xint",
+      "yard-management",
+      "edge-mhe",
+      "edge-printing",
+      "edge-rf",
+      "routerportalui-facade",
+      "conductor",
+      "vendor-request",
+      "vendor-shipment",
+      "xbound"];
 
     function generatePayload() {
-      var clientCode = document.getElementById("clientCode").value.trim();
-      var modNo = document.getElementById("modNo").value.trim();
-      var operation = document.getElementById("operation").value.trim();
-      var createSdName = document.getElementById("createSdName").value.trim();
-      var defaultApi = document.getElementById("defaultApi").value.trim();
-      var component = document.getElementById("component").value;
-
-      if (!clientCode || !modNo || !operation || !defaultApi || !component) {
-        alert("Missing some fields");
-        return;
-      }
-
       var output = {};
-      if (document.getElementById("additionalFieldsContainer").style.display === "none") {
-        document.getElementById("output").innerHTML = "";
-        return;
-      }
+      var createSdName = document.getElementById("createSdName").value.trim();
+      var defaultApi = document.getElementById("Url").value.trim();
+      var reqUrl = document.getElementById("ReqUrl").value.trim();
+      var component = document.getElementById("component").value;
+      var description = document.getElementById("operation").value;
+      var componentId = document.getElementById("componentId").value.trim();
+      var handlerName = document.getElementById("handlerName").value.trim();
+      var sdName = document.getElementById("sdName").value.trim();
 
-      output = {
-        "ServiceId": createSdName || "Not Applicable",
-        "ComponentId": component || "Not Applicable",
-        "ExtensionHandlerId": createSdName ? "MA" + createSdName : "Not Applicable",
-        "Url": defaultApi
-      };
+      if (document.getElementById("yes").checked) {
+        if (!createSdName || !component || !description) {
+          alert("Missing some fields");
+          return;
+        }
+        output = {
+          "ServiceId": createSdName || null,
+          "ComponentId": component || null,
+          "Description": description || null,
+        };
+        if (document.getElementById("yesUrl").checked) {
+          if (!defaultApi) {
+            alert("Please enter the URL.");
+            return;
+          }
+          output.Url = defaultApi;
+        } else {
+          if (!reqUrl) {
+            alert("Please enter the Request Mapping URL.");
+            return;
+          }
+          output.RequestMappingUrl = reqUrl;
+        }
+      } else {
+        if (!sdName || !handlerName || !componentId) {
+          alert("Missing some fields");
+          return;
+        }
+        output = {
+          "ServiceId": sdName || null,
+          "ExtensionHandlerId": handlerName || null,
+          "ComponentId": componentId || null
+        };
+      }
 
       document.getElementById("output").innerHTML = "<h3>Payload:</h3><pre>" + JSON.stringify(output, null, 2) + "</pre>";
     }
 
     function toggleAdditionalFields() {
-      var clientCode = document.getElementById("clientCode").value.trim();
-      var modNo = document.getElementById("modNo").value.trim();
-      var operation = document.getElementById("operation").value.trim();
-      var additionalFieldsContainer = document.getElementById("additionalFieldsContainer");
+      var additionalFieldsContainerForYes = document.getElementById("additionalFieldsContainerForYes");
       var additionalFieldsForNo = document.getElementById("additionalFieldsForNo");
-      var additionalFieldsRadioButtons = document.getElementsByName("additionalFields");
-      var outputDiv = document.getElementById("output");
+      var outputContainer = document.getElementById("output");
 
-      if (!clientCode || !modNo || !operation) {
-        for (var i = 0; i < additionalFieldsRadioButtons.length; i++) {
-          additionalFieldsRadioButtons[i].checked = false;
-        }
-        if (confirm("Some fields are missing. The page will be reloaded.")) {
-          window.location.reload();
-        }
-        return;
-      }
+      outputContainer.innerHTML = "";
 
-      var additionalFieldsValue = document.querySelector('input[name="additionalFields"]:checked').value;
-      if (additionalFieldsValue === "yes") {
-        additionalFieldsContainer.style.display = "block";
+      if (document.getElementById("yes").checked) {
+        additionalFieldsContainerForYes.style.display = "block";
         additionalFieldsForNo.style.display = "none";
-        outputDiv.innerHTML = "";
-        populateComponentDropdown(); // Populate component dropdown when "Yes" is selected
-      } else {
-        additionalFieldsContainer.style.display = "none";
-        additionalFieldsForNo.style.display = "block";
-        outputDiv.innerHTML = "";
+        var componentSelect = document.getElementById("component");
 
+        componentSelect.innerHTML = "<option value=''>Select Component</option>";
+
+        body.forEach(function (component) {
+          var option = document.createElement("option");
+          option.text = component;
+          option.value = component.replace(/\s+/g, '').toLowerCase();
+          componentSelect.add(option);
+        });
+
+      } else {
+        additionalFieldsContainerForYes.style.display = "none";
+        additionalFieldsForNo.style.display = "block";
         var createSdName = document.getElementById("createSdName").value.trim();
-        var sdNameNo = "MA" +createSdName;
-        document.getElementById("sdNameNo").value = sdNameNo;
-        document.getElementById("handlerName").value = sdNameNo;
+        var sdName = "MA" + createSdName;
+        document.getElementById("sdName").value = sdName;
+        document.getElementById("handlerName").value = sdName;
 
         var componentIdSelect = document.getElementById("componentId");
-        componentIdSelect.innerHTML = "<option value=''>Select Component ID</option>"; // Reset options
+        componentIdSelect.innerHTML = "<option value=''>Select Component ID</option>";
         body.forEach(function (component) {
           var option = document.createElement("option");
           option.text = component;
@@ -227,35 +354,53 @@
       }
     }
 
-    function fetchServiceDefinitions() {
-      var component = document.getElementById("component").value;
-      var createSdNameInput = document.getElementById("createSdName");
+    function toggleUrlandReqMapUrl() {
+      var additionalFieldsForUrl = document.getElementById("additionalFieldsForUrl");
+      var additionalFieldsForReqUrl = document.getElementById("additionalFieldsForReqUrl");
+      var outputContainer = document.getElementById("output");
+      outputContainer.innerHTML = "";
 
-      if (!createSdNameInput.value) {
-        if (component) {
-          createSdNameInput.value = component;
-        } else {
-          createSdNameInput.value = "Empty";
-        }
+      document.getElementById("Url").value = "";
+      document.getElementById("ReqUrl").value = "";
+      if (document.getElementById("yesUrl").checked) {
+        additionalFieldsForUrl.style.display = "block";
+        additionalFieldsForReqUrl.style.display = "none";
+      } else {
+        additionalFieldsForUrl.style.display = "none";
+        additionalFieldsForReqUrl.style.display = "block";
       }
     }
 
-    function populateComponentDropdown() {
-      var componentSelect = document.getElementById("component");
-      componentSelect.innerHTML = "<option value=''>Select Component</option>";
-      body.forEach(function (component) {
-        var option = document.createElement("option");
-        option.text = component;
-        option.value = component.replace(/\s+/g, '').toLowerCase();
-        componentSelect.add(option);
+
+
+
+    function updateSdNameAndDescription() {
+      var clientCode = document.getElementById("clientCode").value.trim().toUpperCase();
+      var modNo = document.getElementById("modNo").value.trim().toUpperCase();
+      var operation = document.getElementById("operation").value.trim();
+      var description = operation.replace(/\b\w/g, function (char) {
+        return char.toUpperCase();
+      }).replace(/\B[A-Z]/g, function (char) {
+        return char.toLowerCase();
       });
+
+      var descriptionWithoutSpaces = description.replace(/\s+/g, '');
+
+      if (clientCode && modNo && operation && descriptionWithoutSpaces) {
+        var createSdName = clientCode + modNo + descriptionWithoutSpaces;
+        document.getElementById("createSdName").value = createSdName;
+        document.getElementById("Description").value = description;
+      } else {
+        document.getElementById("createSdName").value = "Empty";
+        document.getElementById("Description").value = "Empty";
+      }
     }
 
     window.onload = function () {
-      fetchServiceDefinitions();
       updateSdNameAndDescription();
     };
   </script>
 
 </body>
+
 </html>
